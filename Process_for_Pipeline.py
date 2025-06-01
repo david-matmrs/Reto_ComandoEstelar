@@ -143,5 +143,29 @@ df = df.join(df_categ[['cluster']], how='inner')
 
 ##################################
 
+# Columnas a las que se le aplicara el analisis numerico
 numericas = ['h_tot_hab', 'tarifa_x_noche', 'h_num_per', 'h_num_adu', 'h_num_men', 'h_num_noc']
-resumen = df.groupby('cluster')[numericas].agg(['mean', 'std'])
+
+# Diccionario en el que guardarán los resultados por columna por cluster 
+# (el arreglo 0 será media y 1 será desv. est.)
+resultados = {}
+for valor in numericas:
+    medias = df.groupby('cluster')[valor].agg(['mean']).to_numpy().flatten()
+    medias = np.round(medias, 2)
+    desvests = df.groupby('cluster')[valor].agg(['std']).to_numpy().flatten()
+    desvests = np.round(desvests, 2)
+    resultados[valor] = []
+    resultados[valor].append(medias)
+    resultados[valor].append(desvests)
+
+# Cluster con maxima media de tarifa_x_noche
+cluster_max_med_taf_x_noc = np.argmax(resultados['tarifa_x_noche'][0])
+
+# Cluster con minima desv. est. de tarifa_x_noche
+cluster_min_desv_taf_x_noc = np.argmin(resultados['tarifa_x_noche'][1])
+
+# Arreglo con las modas del mes de reservacion por cluster
+modas_mes_res = df.groupby('cluster')['h_res_fec_mes'].agg(lambda x: x.mode().iloc[0])
+
+# Arreglo con las modas del mes de estadia por cluster
+modas_mes_est = df.groupby('cluster')['h_fec_lld_mes'].agg(lambda x: x.mode().iloc[0])
