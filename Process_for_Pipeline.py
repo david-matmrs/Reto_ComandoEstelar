@@ -158,14 +158,37 @@ for valor in numericas:
     resultados[valor].append(medias)
     resultados[valor].append(desvests)
 
-# Cluster con maxima media de tarifa_x_noche
-cluster_max_med_taf_x_noc = np.argmax(resultados['tarifa_x_noche'][0])
+# Funcion para extraer el valor valor maximo, cluster al que corresponde, 
+# y diferencia porcentual con el segundo maximo valor (aplica a las medias)
+def resumen_maximo(arr):
+    max_val = np.max(arr)
+    max_idx = np.argmax(arr)
+    arr_sin_max = np.delete(arr, max_idx)
+    segundo_max = np.max(arr_sin_max)
+    diferencia_pct = 100 * (max_val - segundo_max) / max_val
+    return max_val, max_idx, diferencia_pct
 
-# Cluster con minima desv. est. de tarifa_x_noche
-cluster_min_desv_taf_x_noc = np.argmin(resultados['tarifa_x_noche'][1])
+# Lo mismo pero con el minimo (aplica a las desvests)
+def resumen_minimo(arr):
+    min_val = np.min(arr)
+    min_idx = np.argmin(arr)
+    arr_sin_min = np.delete(arr, min_idx)
+    segundo_min = np.max(arr_sin_min)
+    diferencia_pct = 100 * (min_val - segundo_min) / min_val
+    return min_val, min_idx, diferencia_pct
 
-# Arreglo con las modas del mes de reservacion por cluster
-modas_mes_res = df.groupby('cluster')['h_res_fec_mes'].agg(lambda x: x.mode().iloc[0])
+# Funcion que regresa un dataframe con el porcentaje de presencia de cada categoria agrupando 
+# por otra (para aplicarse a mes de reservacion y de estadia agrupando por cluster)
+def porcentaje_por_categoria(df, columna_grupo, columna_valor):
+    conteos = df.groupby(columna_grupo)[columna_valor].value_counts(normalize=True)
+    porcentaje_df = conteos.rename("porcentaje").reset_index()
+    porcentaje_df["porcentaje"] *= 100
+    porcentaje_df["porcentaje"] = np.round(porcentaje_df["porcentaje"], 2)
+    return porcentaje_df
 
-# Arreglo con las modas del mes de estadia por cluster
-modas_mes_est = df.groupby('cluster')['h_fec_lld_mes'].agg(lambda x: x.mode().iloc[0])
+##################################
+
+# LOGICA PARA RECOMENDACIONES 
+# PERSONALIZADAS
+
+##################################
