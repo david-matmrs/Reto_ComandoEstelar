@@ -7,8 +7,12 @@
 import pandas as pd
 import numpy as np
 from kmodes.kmodes import KModes
+# Ignorar alertas
 import warnings
 warnings.simplefilter("ignore")
+# Manejar los meses y fechas en español
+import locale
+locale.setlocale(locale.LC_TIME, 'Spanish_Spain.1252')
 
 ##################################
 
@@ -55,7 +59,7 @@ df.drop(['ID_Reserva'], axis = 'columns', inplace = True)
 df.loc[df['h_num_per'], 'h_num_per'] = df['h_num_men'] + df['h_num_adu']
 
 # Crear nuevas columnas indicando si es fin de semana o entre semana
-fechas = ['reservacion', 'estadia']
+fechas = ['reservacion', 'llegada']
 
 for i in range(len(fechas)):
     df[f'entre_fin_{fechas[i]}'] = df[columnas_fechas[i]].dt.weekday.apply(lambda x: 'Fin de semana' if x >= 5 else 'Entre semana')
@@ -164,16 +168,21 @@ def resumen_maximo(arr):
     max_idx = np.argmax(arr)
     arr_sin_max = np.delete(arr, max_idx)
     segundo_max = np.max(arr_sin_max)
-    diferencia_pct = 100 * (max_val - segundo_max) / max_val
+    diferencia_pct = int(100 * (max_val - segundo_max) / max_val)
     return max_val, max_idx, diferencia_pct
 
 # Lo mismo pero con el minimo (aplica a las desvests)
 def resumen_minimo(arr):
-    min_val = np.min(arr)
-    min_idx = np.argmin(arr)
+    min_val = np.nanmin(arr)
+    min_idx = np.nanargmin(arr)
     arr_sin_min = np.delete(arr, min_idx)
-    segundo_min = np.max(arr_sin_min)
-    diferencia_pct = 100 * min_val / segundo_min
+    arr_sin_min = arr_sin_min[~np.isnan(arr_sin_min)]
+    if arr_sin_min.size == 0:
+        segundo_min = 0
+        diferencia_pct = 0
+    else:
+        segundo_min = np.nanmin(arr_sin_min)
+        diferencia_pct = int(100 * min_val / segundo_min) if segundo_min != 0 else None
     return min_val, min_idx, diferencia_pct
 
 # Funcion que regresa un dataframe con el porcentaje de presencia de cada categoria agrupando 
@@ -205,7 +214,7 @@ top_meses_res = {}
 top_meses_est = {}
 for i in range(0,4):
     top_meses_res[i] = df_top_meses_res[df_top_meses_res['cluster'] == i].iloc[:3][['h_res_fec_mes','porcentaje']]
-    top_meses_est[i] = df_top_meses_res[df_top_meses_res['cluster'] == i].iloc[:3][['h_res_fec_mes','porcentaje']]
+    top_meses_est[i] = df_top_meses_est[df_top_meses_est['cluster'] == i].iloc[:3][['h_fec_lld_mes','porcentaje']]
 
 ##################################
 
@@ -213,3 +222,42 @@ for i in range(0,4):
 # PERSONALIZADAS
 
 ##################################
+
+destacados = {0: [], 1: [], 2: [], 3: []}
+for i in destacados.keys():
+
+    for columna, resumen in resumen_medias.items():
+        if i == resumen[1] and resumen[2] > 15:
+            if columna == 'h_tot_hab': 
+                nombre = 'habitaciones'
+            elif columna == 'tarifa_x_noche':
+                nombre = 'tarifa por noche'
+            elif columna == 'h_num_per':
+                nombre = 'personas'
+            elif columna == 'h_num_adu':
+                nombre = 'adultos'
+            elif columna == 'h_num_men':
+                nombre = 'menores'
+            else:
+                nombre = 'noches'
+            destacados[i].append(f'Cluster con mayor promedio de {nombre}: {resumen[0]}, un {resumen[2]}% mayor a cualquer otro')
+
+    mes_res = top_meses_res[i].iloc[0][['h_res_fec_mes']].item()
+    porcentaje_res = top_meses_res[i].iloc[0][['porcentaje']].item()
+    relacion_primero_segundo_res = top_meses_res[i].iloc[0][['porcentaje']].item() / top_meses_res[i].iloc[1][['porcentaje']].item()
+    if relacion_primero_segundo_res > 2:  
+        destacados[i].append(f'El mes en que más se reservó fue {mes_res}, con una prevalencia definitiva ({porcentaje_res}%)')
+    elif relacion_primero_segundo_res > 1.5:
+        destacados[i].append(f'El mes en que más se reservó fue {mes_res}, con una fuerte prevalencia ({porcentaje_res}%)')
+    elif relacion_primero_segundo_res > 1.25:
+        destacados[i].append(f'El mes en que más se reservó fue {mes_res}, con una ligera prevalencia ({porcentaje_res}%)')
+
+    mes_est = top_meses_est[i].iloc[0][['h_fec_lld_mes']].item()
+    porcentaje_est = top_meses_est[i].iloc[0][['porcentaje']].item()
+    relacion_primero_segundo_est = top_meses_est[i].iloc[0][['porcentaje']].item() / top_meses_est[i].iloc[1][['porcentaje']].item()
+    if relacion_primero_segundo_est > 2:  
+        destacados[i].append(f'El mes en que más estadías hubo fue {mes_est}, con una prevalencia definitiva ({porcentaje_est}%)')
+    elif relacion_primero_segundo_est > 1.5:
+        destacados[i].append(f'El mes en que más estadías hubo fue {mes_est}, con una fuerte prevalencia ({porcentaje_est}%)')
+    elif relacion_primero_segundo_est > 1.25:
+        destacados[i].append(f'El mes en que más estadías hubo fue {mes_est}, con una ligera prevalencia ({porcentaje_est}%)')
