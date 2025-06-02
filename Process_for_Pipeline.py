@@ -172,6 +172,7 @@ def resumen_maximo(arr):
     return max_val, max_idx, diferencia_pct
 
 # Lo mismo pero con el minimo (aplica a las desvests)
+# Se consideran casos en que la desv. est. sea 0
 def resumen_minimo(arr):
     min_val = np.nanmin(arr)
     min_idx = np.nanargmin(arr)
@@ -216,6 +217,10 @@ for i in range(0,4):
     top_meses_res[i] = df_top_meses_res[df_top_meses_res['cluster'] == i].iloc[:3][['h_res_fec_mes','porcentaje']]
     top_meses_est[i] = df_top_meses_est[df_top_meses_est['cluster'] == i].iloc[:3][['h_fec_lld_mes','porcentaje']]
 
+# Guardamos un df con todos los valores del resumen estadistico, lo usaremos mas tarde
+numericas = ['h_tot_hab', 'tarifa_x_noche', 'h_num_per', 'h_num_adu', 'h_num_men', 'h_num_noc']
+resumen_total = df.groupby('cluster')[numericas].agg(['mean', 'std'])
+
 ##################################
 
 # LOGICA PARA RECOMENDACIONES 
@@ -226,54 +231,9 @@ for i in range(0,4):
 # Diccionario donde se guardaran los aspectos destacados por cluster
 destacados = {0: [], 1: [], 2: [], 3: []}
 
-# Recorremos los cluster
 for i in destacados.keys():
-
-    # Primer bloque de logica que agrega los comentarios del analisis de promedios, es decir, 
-    # mencionara los clusters con mayor media en cada una de las columnas numericas
-    for columna, resumen in resumen_medias.items():
-        if i == resumen[1] and resumen[2] > 15:
-            if columna == 'h_tot_hab': 
-                nombre = 'no. de habitaciones'
-            elif columna == 'tarifa_x_noche':
-                nombre = 'tarifa por noche'
-            elif columna == 'h_num_per':
-                nombre = 'no. de personas'
-            elif columna == 'h_num_adu':
-                nombre = 'no. de adultos'
-            elif columna == 'h_num_men':
-                nombre = 'no. de menores'
-            else:
-                nombre = 'no. de noches'
-            destacados[i].append(f'Cluster con mayor promedio de {nombre}: {resumen[0]}, un {resumen[2]}% mayor a cualquer otro')
-
-    # Segundo bloque de logica que agrega los comentarios del analisis modal de los meses en reservaciones, es decir, 
-    # mencionara los meses mas presentes y su nivel de prevalencia en relacion a los demas 
-    mes_res = top_meses_res[i].iloc[0][['h_res_fec_mes']].item()
-    porcentaje_res = top_meses_res[i].iloc[0][['porcentaje']].item()
-    relacion_primero_segundo_res = top_meses_res[i].iloc[0][['porcentaje']].item() / top_meses_res[i].iloc[1][['porcentaje']].item()
-    if relacion_primero_segundo_res > 2:  
-        destacados[i].append(f'El mes en que más se reservó fue {mes_res}, con una prevalencia definitiva ({porcentaje_res}%)')
-    elif relacion_primero_segundo_res > 1.5:
-        destacados[i].append(f'El mes en que más se reservó fue {mes_res}, con una fuerte prevalencia ({porcentaje_res}%)')
-    elif relacion_primero_segundo_res > 1.25:
-        destacados[i].append(f'El mes en que más se reservó fue {mes_res}, con una ligera prevalencia ({porcentaje_res}%)')
-
-    # Tercer bloque de logica que agrega los comentarios del analisis modal de los meses en estadias, es decir, 
-    # mencionara los meses mas presentes y su nivel de prevalencia en relacion a los demas 
-    mes_est = top_meses_est[i].iloc[0][['h_fec_lld_mes']].item()
-    porcentaje_est = top_meses_est[i].iloc[0][['porcentaje']].item()
-    relacion_primero_segundo_est = top_meses_est[i].iloc[0][['porcentaje']].item() / top_meses_est[i].iloc[1][['porcentaje']].item()
-    if relacion_primero_segundo_est > 2:  
-        destacados[i].append(f'El mes en que más estadías hubo fue {mes_est}, con una prevalencia definitiva ({porcentaje_est}%)')
-    elif relacion_primero_segundo_est > 1.5:
-        destacados[i].append(f'El mes en que más estadías hubo fue {mes_est}, con una fuerte prevalencia ({porcentaje_est}%)')
-    elif relacion_primero_segundo_est > 1.25:
-        destacados[i].append(f'El mes en que más estadías hubo fue {mes_est}, con una ligera prevalencia ({porcentaje_est}%)')
-
-    # Cuarto bloque de logica que agrega los comentarios del analisis de desviaciones estandar, es decir,
-    # mencionara los clusters con datos mas agrupados (o menores desv. est. en relacion al resto)
-    for columna, resumen2 in resumen_desvests.items():
+    for columna in resumen_medias.keys():
+        # Cambiamos nombres para un output mas legible
         if columna == 'h_tot_hab': 
             nombre = 'no. de habitaciones'
         elif columna == 'tarifa_x_noche':
@@ -284,9 +244,47 @@ for i in destacados.keys():
             nombre = 'no. de adultos'
         elif columna == 'h_num_men':
             nombre = 'no. de menores'
-        else:
+        elif columna == 'h_num_noc':
             nombre = 'no. de noches'
-        if i == resumen2[1] and resumen2[0] == 0:
-            destacados[i].append(f'Todos los valores de {nombre} son {resumen2[1]}')
-        elif i == resumen2[1] and resumen2[2] < 33 and resumen2[2] > 0:
-            destacados[i].append(f'Valores muy cercanamente agrupados en {nombre}, ya que sólo varían en +/- {resumen2[0]} unidades')
+
+        # Se agregaran comentarios a los clusters que tienen mayor promedio en cada una de las columnas categoricas. 
+        # El criterio es: el promedio del cluster es al menos 15% mayor que cualquier otro
+        if i == resumen_medias[columna][1] and resumen_medias[columna][2] > 15:
+            destacados[i].append(f'Cluster con mayor promedio de {nombre}: {resumen_medias[columna][0]}, un {resumen_medias[columna][2]}% mayor a cualquer otro')
+        
+        # Se agregaran comentarios a los clusters que tienen la menor 
+        # desviacion estandar en cada una de las columnas categoricas. 
+        # El criterio es: la menor desv. est. es 33% o menos de la segunda menor
+        # Pero primero se revisa si la desv. est. es 0, 
+        # ya que en ese caso todos los valores son iguales
+        if i == resumen_desvests[columna][1] and resumen_desvests[columna][0] == 0:
+            destacados[i].append(f'Todos los valores de {nombre} son {resumen_desvests[columna][1]}')
+        elif i == resumen_desvests[columna][1] and resumen_desvests[columna][1] < 33:
+            media = np.round(resumen_total[columna]['mean'][i], 2)
+            destacados[i].append(f'Valores muy cercanamente agrupados en {nombre}. Varían en +/- {resumen_desvests[columna][0]} unidades alrededor de su media {media}')
+
+    # Se agregaran comentarios a los clusters acerca de la prevalencia de los meses en reservaciones
+    # Existen varios niveles de prevalencia:
+    # Prevalencia definitiva: el mes mas prevalente tiene el doble de presencia que el segundo
+    # Fuerte prevalencia: el mes mas prevalente tiene 1.5 la presencia del segundo
+    # Ligera prevalencia: el mes mas prevalente tiene 1.24 la presencia del segundo 
+    mes_res = top_meses_res[i].iloc[0][['h_res_fec_mes']].item()
+    porcentaje_res = top_meses_res[i].iloc[0][['porcentaje']].item()
+    relacion_primero_segundo_res = top_meses_res[i].iloc[0][['porcentaje']].item() / top_meses_res[i].iloc[1][['porcentaje']].item()
+    if relacion_primero_segundo_res > 2:  
+        destacados[i].append(f'El mes en que más se reservó fue {mes_res}, con una prevalencia definitiva ({porcentaje_res}%)')
+    elif relacion_primero_segundo_res > 1.5:
+        destacados[i].append(f'El mes en que más se reservó fue {mes_res}, con una fuerte prevalencia ({porcentaje_res}%)')
+    elif relacion_primero_segundo_res > 1.25:
+        destacados[i].append(f'El mes en que más se reservó fue {mes_res}, con una ligera prevalencia ({porcentaje_res}%)')
+
+    # Se realiza el mismo proceso para la prevalencia de los meses de estadia
+    mes_est = top_meses_est[i].iloc[0][['h_fec_lld_mes']].item()
+    porcentaje_est = top_meses_est[i].iloc[0][['porcentaje']].item()
+    relacion_primero_segundo_est = top_meses_est[i].iloc[0][['porcentaje']].item() / top_meses_est[i].iloc[1][['porcentaje']].item()
+    if relacion_primero_segundo_est > 2:  
+        destacados[i].append(f'El mes en que más estadías hubo fue {mes_est}, con una prevalencia definitiva ({porcentaje_est}%)')
+    elif relacion_primero_segundo_est > 1.5:
+        destacados[i].append(f'El mes en que más estadías hubo fue {mes_est}, con una fuerte prevalencia ({porcentaje_est}%)')
+    elif relacion_primero_segundo_est > 1.25:
+        destacados[i].append(f'El mes en que más estadías hubo fue {mes_est}, con una ligera prevalencia ({porcentaje_est}%)')
