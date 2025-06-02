@@ -223,25 +223,32 @@ for i in range(0,4):
 
 ##################################
 
+# Diccionario donde se guardaran los aspectos destacados por cluster
 destacados = {0: [], 1: [], 2: [], 3: []}
+
+# Recorremos los cluster
 for i in destacados.keys():
 
+    # Primer bloque de logica que agrega los comentarios del analisis de promedios, es decir, 
+    # mencionara los clusters con mayor media en cada una de las columnas numericas
     for columna, resumen in resumen_medias.items():
         if i == resumen[1] and resumen[2] > 15:
             if columna == 'h_tot_hab': 
-                nombre = 'habitaciones'
+                nombre = 'no. de habitaciones'
             elif columna == 'tarifa_x_noche':
                 nombre = 'tarifa por noche'
             elif columna == 'h_num_per':
-                nombre = 'personas'
+                nombre = 'no. de personas'
             elif columna == 'h_num_adu':
-                nombre = 'adultos'
+                nombre = 'no. de adultos'
             elif columna == 'h_num_men':
-                nombre = 'menores'
+                nombre = 'no. de menores'
             else:
-                nombre = 'noches'
+                nombre = 'no. de noches'
             destacados[i].append(f'Cluster con mayor promedio de {nombre}: {resumen[0]}, un {resumen[2]}% mayor a cualquer otro')
 
+    # Segundo bloque de logica que agrega los comentarios del analisis modal de los meses en reservaciones, es decir, 
+    # mencionara los meses mas presentes y su nivel de prevalencia en relacion a los demas 
     mes_res = top_meses_res[i].iloc[0][['h_res_fec_mes']].item()
     porcentaje_res = top_meses_res[i].iloc[0][['porcentaje']].item()
     relacion_primero_segundo_res = top_meses_res[i].iloc[0][['porcentaje']].item() / top_meses_res[i].iloc[1][['porcentaje']].item()
@@ -252,6 +259,8 @@ for i in destacados.keys():
     elif relacion_primero_segundo_res > 1.25:
         destacados[i].append(f'El mes en que más se reservó fue {mes_res}, con una ligera prevalencia ({porcentaje_res}%)')
 
+    # Tercer bloque de logica que agrega los comentarios del analisis modal de los meses en estadias, es decir, 
+    # mencionara los meses mas presentes y su nivel de prevalencia en relacion a los demas 
     mes_est = top_meses_est[i].iloc[0][['h_fec_lld_mes']].item()
     porcentaje_est = top_meses_est[i].iloc[0][['porcentaje']].item()
     relacion_primero_segundo_est = top_meses_est[i].iloc[0][['porcentaje']].item() / top_meses_est[i].iloc[1][['porcentaje']].item()
@@ -261,3 +270,23 @@ for i in destacados.keys():
         destacados[i].append(f'El mes en que más estadías hubo fue {mes_est}, con una fuerte prevalencia ({porcentaje_est}%)')
     elif relacion_primero_segundo_est > 1.25:
         destacados[i].append(f'El mes en que más estadías hubo fue {mes_est}, con una ligera prevalencia ({porcentaje_est}%)')
+
+    # Cuarto bloque de logica que agrega los comentarios del analisis de desviaciones estandar, es decir,
+    # mencionara los clusters con datos mas agrupados (o menores desv. est. en relacion al resto)
+    for columna, resumen2 in resumen_desvests.items():
+        if columna == 'h_tot_hab': 
+            nombre = 'no. de habitaciones'
+        elif columna == 'tarifa_x_noche':
+            nombre = 'tarifa por noche'
+        elif columna == 'h_num_per':
+            nombre = 'no. de personas'
+        elif columna == 'h_num_adu':
+            nombre = 'no. de adultos'
+        elif columna == 'h_num_men':
+            nombre = 'no. de menores'
+        else:
+            nombre = 'no. de noches'
+        if i == resumen2[1] and resumen2[0] == 0:
+            destacados[i].append(f'Todos los valores de {nombre} son {resumen2[1]}')
+        elif i == resumen2[1] and resumen2[2] < 33 and resumen2[2] > 0:
+            destacados[i].append(f'Valores muy cercanamente agrupados en {nombre}, ya que sólo varían en +/- {resumen2[0]} unidades')
