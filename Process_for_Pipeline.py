@@ -138,8 +138,7 @@ df = df.join(df_categ[['cluster']], how='inner')
 ##################################
 
 # EXTRACCION DE INDICADORES PARA
-# EL DASHBOARD Y LAS 
-# RECOMENDACIONES PERSONALIZADAS
+# EL DASHBOARD
 
 ##################################
 
@@ -174,7 +173,7 @@ def resumen_minimo(arr):
     min_idx = np.argmin(arr)
     arr_sin_min = np.delete(arr, min_idx)
     segundo_min = np.max(arr_sin_min)
-    diferencia_pct = 100 * (min_val - segundo_min) / min_val
+    diferencia_pct = 100 * min_val / segundo_min
     return min_val, min_idx, diferencia_pct
 
 # Funcion que regresa un dataframe con el porcentaje de presencia de cada categoria agrupando 
@@ -185,6 +184,28 @@ def porcentaje_por_categoria(df, columna_grupo, columna_valor):
     porcentaje_df["porcentaje"] *= 100
     porcentaje_df["porcentaje"] = np.round(porcentaje_df["porcentaje"], 2)
     return porcentaje_df
+
+# Agrupamos el resumen en diccionarios, cada llave es el nombre de la columna y cada valor es el resumen guardado en una tupla:
+# el primer valor de esta es mejor valor, el segundo el cluster al que corresponde y el tercerso su comparativa porcentual 
+# con el segundo mejor (en el caso de la media, es que tanto % es mayor el primero que el segundo, y en el caso de la desviacion 
+# estandar, es el % del segundo que constituye el primero; ej.: si el mejor es 1 y el segundo mejor 2, la comparativa es 50%)
+resumen_medias = {}
+resumen_desvests = {}
+for i in range(len(numericas)):
+    resumen_medias[numericas[i]] = resumen_maximo(resultados[numericas[i]][0])
+    resumen_desvests[numericas[i]] = resumen_minimo(resultados[numericas[i]][1])
+
+# Guardamos los dataframes que contienen ordenados los porcentajes de cada mes
+df_top_meses_res = porcentaje_por_categoria(df, 'cluster', 'h_res_fec_mes')
+df_top_meses_est = porcentaje_por_categoria(df, 'cluster', 'h_fec_lld_mes')
+
+# Creamos diccionarios para guardar los dataframes con los top 3 meses mas prevalentes en fecha de reservacion y de 
+# estadia para cada cluster y sus respectivos porcentajes
+top_meses_res = {}
+top_meses_est = {}
+for i in range(0,4):
+    top_meses_res[i] = df_top_meses_res[df_top_meses_res['cluster'] == i].iloc[:3][['h_res_fec_mes','porcentaje']]
+    top_meses_est[i] = df_top_meses_res[df_top_meses_res['cluster'] == i].iloc[:3][['h_res_fec_mes','porcentaje']]
 
 ##################################
 
