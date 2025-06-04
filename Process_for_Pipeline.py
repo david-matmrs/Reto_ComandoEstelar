@@ -262,7 +262,7 @@ for i in destacados.keys():
             if nombre == 'tarifa por noche':
                 recomendaciones[i].append(f'Proponer una tarifa de entre {lim_inf:.2f} y {lim_sup:.2f} sería muy acertado')
             elif nombre == 'no. de noches':
-                recomendaciones[i].append(f'Proponer entre {lim_inf:.2f} y {lim_sup:.2f} habitaciones sería muy acertado')
+                recomendaciones[i].append(f'Proponer entre {lim_inf:.2f} y {lim_sup:.2f} noches sería muy acertado')
 
     # Se agregaran comentarios a los clusters acerca de la prevalencia de los meses en reservaciones
     # Existen varios niveles de prevalencia:
