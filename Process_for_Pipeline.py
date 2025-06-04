@@ -97,7 +97,7 @@ df_categ = pd.DataFrame(df['ID_estatus_reservaciones'].astype(str))
 df_categ = df_categ.set_index(df.index)  
 
 # Columnas que se agregarán al nuevo dataframe de valores categóricos y no requieren ningún tipo de transformación
-Columns_to_categ = ['h_tot_hab', 'ID_Paquete', 'h_num_men', 'h_num_adu', 'h_num_per',
+Columns_to_categ = ['h_tot_hab', 'ID_Paquete', 'h_num_men', 'h_num_adu', 'h_num_per', 'entre_fin_llegada',
                     'entre_fin_reservacion', 'ID_Agencia', 'ID_Tipo_Habitacion', 'h_res_fec_mes', 'h_fec_lld_mes']
 
 for column in Columns_to_categ:
@@ -105,23 +105,7 @@ for column in Columns_to_categ:
 
 # Dividir los registros categoricamente por cuartiles (cantidades iguales de valores por rango),
 # basados en la tarifa por noche
-q1 = df['tarifa_x_noche'].quantile(0.25)
-q2 = df['tarifa_x_noche'].quantile(0.50)
-q3 = df['tarifa_x_noche'].quantile(0.75)
-
-tarifa_categ = []
-for tarifa in df['tarifa_x_noche']:
-    if tarifa <= q1:
-        tarifa_categ.append('Bajo')
-    elif tarifa > q1 and tarifa <= q2:
-        tarifa_categ.append('Medio-Bajo')
-    elif tarifa > q2 and tarifa <= q3:
-        tarifa_categ.append('Medio-Alto')
-    else:
-        tarifa_categ.append('Alto')
-    
-df_categ['tarifa_x_noche'] = tarifa_categ
-df_categ['tarifa_x_noche'] = df_categ['tarifa_x_noche'].astype(str)
+df_categ['tarifa_x_noche'] = pd.qcut(df['tarifa_x_noche'], q=4, labels=['Bajo', 'Medio-Bajo', 'Medio-Alto', 'Alto'])
 
 ##################################
 
@@ -148,6 +132,9 @@ df = df.join(df_categ[['cluster']], how='inner')
 
 # Columnas a las que se le aplicara el analisis numerico
 numericas = ['h_tot_hab', 'tarifa_x_noche', 'h_num_per', 'h_num_adu', 'h_num_men', 'h_num_noc']
+
+# Guardamos un df con todos los valores del resumen estadistico, lo usaremos mas tarde
+resumen_total = df.groupby('cluster')[numericas].agg(['mean', 'std'])
 
 # Diccionario en el que guardarán los resultados por columna por cluster 
 # (el arreglo 0 será media y 1 será desv. est.)
@@ -217,10 +204,6 @@ for i in range(0,4):
     top_meses_res[i] = df_top_meses_res[df_top_meses_res['cluster'] == i].iloc[:3][['h_res_fec_mes','porcentaje']]
     top_meses_est[i] = df_top_meses_est[df_top_meses_est['cluster'] == i].iloc[:3][['h_fec_lld_mes','porcentaje']]
 
-# Guardamos un df con todos los valores del resumen estadistico, lo usaremos mas tarde
-numericas = ['h_tot_hab', 'tarifa_x_noche', 'h_num_per', 'h_num_adu', 'h_num_men', 'h_num_noc']
-resumen_total = df.groupby('cluster')[numericas].agg(['mean', 'std'])
-
 ##################################
 
 # LOGICA PARA RECOMENDACIONES 
@@ -230,6 +213,7 @@ resumen_total = df.groupby('cluster')[numericas].agg(['mean', 'std'])
 
 # Diccionario donde se guardaran los aspectos destacados por cluster
 destacados = {0: [], 1: [], 2: [], 3: []}
+recomendaciones = {0: [], 1: [], 2: [], 3: []}
 
 for i in destacados.keys():
     for columna in resumen_medias.keys():
@@ -246,12 +230,18 @@ for i in destacados.keys():
             nombre = 'no. de menores'
         elif columna == 'h_num_noc':
             nombre = 'no. de noches'
-
+        
         # Se agregaran comentarios a los clusters que tienen mayor promedio en cada una de las columnas categoricas. 
         # El criterio es: el promedio del cluster es al menos 15% mayor que cualquier otro
         if i == resumen_medias[columna][1] and resumen_medias[columna][2] > 15:
             destacados[i].append(f'Cluster con mayor promedio de {nombre}: {resumen_medias[columna][0]}, un {resumen_medias[columna][2]}% mayor a cualquer otro')
-        
+            if nombre == 'tarifa por noche':
+                recomendaciones[i].append('Se recomienda presentar una tarifa alta')
+            elif nombre == 'no. de menores':
+                recomendaciones[i].append('Se recomienda llamar la atención y ofrecer servicios y actividades familiares o para niños')
+            elif nombre == 'no. de habitaciones':
+                recomendaciones[i].append('Se recomienda ofrecer mayor cantidad de habitaciones')
+            
         # Se agregaran comentarios a los clusters que tienen la menor 
         # desviacion estandar en cada una de las columnas categoricas. 
         # El criterio es: la menor desv. est. es 33% o menos de la segunda menor
@@ -259,9 +249,20 @@ for i in destacados.keys():
         # ya que en ese caso todos los valores son iguales
         if i == resumen_desvests[columna][1] and resumen_desvests[columna][0] == 0:
             destacados[i].append(f'Todos los valores de {nombre} son {resumen_desvests[columna][1]}')
+            if nombre == 'tarifa por noche':
+                recomendaciones[i].append(f'Proponer una tarifa de {resumen_desvests[columna][1]} sería extremadamente acertado')
+            elif nombre == 'no. de habitaciones':
+                recomendaciones[i].append(f'Proponer {resumen_desvests[columna][1]} sería extremadamente acertado')
         elif i == resumen_desvests[columna][1] and resumen_desvests[columna][1] < 33:
             media = np.round(resumen_total[columna]['mean'][i], 2)
+            desvest = np.round(resumen_total[columna]['std'][i], 2)
+            lim_inf = media - desvest
+            lim_sup = media + desvest
             destacados[i].append(f'Valores muy cercanamente agrupados en {nombre}. Varían en +/- {resumen_desvests[columna][0]} unidades alrededor de su media {media}')
+            if nombre == 'tarifa por noche':
+                recomendaciones[i].append(f'Proponer una tarifa de entre {lim_inf:.2f} y {lim_sup:.2f} sería muy acertado')
+            elif nombre == 'no. de noches':
+                recomendaciones[i].append(f'Proponer entre {lim_inf:.2f} y {lim_sup:.2f} habitaciones sería muy acertado')
 
     # Se agregaran comentarios a los clusters acerca de la prevalencia de los meses en reservaciones
     # Existen varios niveles de prevalencia:
