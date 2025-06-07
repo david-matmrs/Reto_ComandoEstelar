@@ -82,7 +82,26 @@ if (st.session_state.logged_in == True):
 
     # Carga de datos
     @st.cache_data
+
+
+
+    def mostrar_secrets():
+        st.write("Contenido de st.secrets['snowflake']:")
+        sf = st.secrets.get("snowflake")
+        if sf:
+            for k, v in sf.items():
+                # Para no mostrar la contraseña en texto claro:
+                if k.lower() == "password":
+                    st.write(f"{k}: {'*' * len(v)}")
+                else:
+                    st.write(f"{k}: {v}")
+        else:
+            st.write("No se encontró la sección 'snowflake' en secrets.")
+
+
+
     def load_data():
+        mostrar_secrets()
         try:
             sf = st.secrets["snowflake"]
 
@@ -92,7 +111,7 @@ if (st.session_state.logged_in == True):
             )
 
             engine = create_engine(connection_string)
-            df = pd.read_sql("SELECT * FROM RAW.GIT.DF_GMM", engine)
+            df = pd.read_sql("SELECT * FROM "RAW"."GIT"."DF_GMM", engine)
             return df
         
         except Exception as e:
