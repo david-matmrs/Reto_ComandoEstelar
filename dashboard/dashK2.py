@@ -82,11 +82,22 @@ if (st.session_state.logged_in == True):
     # Carga de datos
     @st.cache_data
     def load_data():
-        conn = snowflake.connector.connect(**st.secrets["snowflake"])
-
-        # Leer los datos de la tabla
-        df = pd.read_sql("SELECT * FROM git.DF_GMM", conn)
-        return df
+        try:
+            conn = snowflake.connector.connect(
+                user=st.secrets["snowflake"]["user"],
+                password=st.secrets["snowflake"]["password"],
+                account=st.secrets["snowflake"]["account"],
+                warehouse=st.secrets["snowflake"]["warehouse"],
+                database=st.secrets["snowflake"]["database"],
+                schema=st.secrets["snowflake"]["schema"],
+            )
+            df = pd.read_sql("SELECT * FROM DF_GMM", conn)
+            return df
+        
+        except Exception as e:
+            st.error(f"Ocurrió un error al cargar los datos: {e}")
+        
+        return pd.DataFrame()
 
     df = load_data()
 
