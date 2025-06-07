@@ -81,7 +81,8 @@ if (st.session_state.logged_in == True):
     # Carga de datos
     @st.cache_data
     def load_data():
-        return pd.read_csv("df_gmm.csv")
+        current_dir = os.path.dirname(__file__)
+        return pd.read_csv(os.join(current_dir, "df_gmm.csv"))
 
     df = load_data()
 
