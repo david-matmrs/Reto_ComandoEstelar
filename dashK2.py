@@ -2,11 +2,6 @@ import sys
 import subprocess
 
 # Ensure openpyxl is installed for reading Excel files
-try:
-    import openpyxl
-except ImportError:
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "openpyxl"])
-
 import streamlit as st
 import joblib
 import numpy as np
