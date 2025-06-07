@@ -84,7 +84,7 @@ if (st.session_state.logged_in == True):
     @st.cache_data
     def load_data():
         try:
-            conn = st.connection("snowflake")
+            conn = st.connection("my_connection", type="snowflake")
             df = conn.query("SELECT * FROM RAW.GIT.DF_GMM;", ttl="10m")
 
             return df
