@@ -87,8 +87,8 @@ if (st.session_state.logged_in == True):
             sf = st.secrets["snowflake"]
 
             connection_string = (
-              f'snowflake://{sf["user"]}:{sf["password"]}@{sf["account"]}/'
-              f'{sf["database"]}/{sf["schema"]}?warehouse={sf["warehouse"]}&role={sf.get("role", "")}'
+              f'snowflake://{sf["USER"]}:{sf["PASSWORD"]}@{sf["ACCOUNT"]}/'
+              f'{sf["DATABASE"]}/{sf["SCHEMA"]}?warehouse={sf["WAREHOUSE"]}&role={sf.get("ROLE", "")}'
             )
 
             engine = create_engine(connection_string)
