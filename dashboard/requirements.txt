@@ -3,3 +3,5 @@ pandas
 plotly
 numpy 
 snowflake-connector-python
+sqlalchemy
+snowflake-sqlalchemy
