@@ -84,19 +84,19 @@ if (st.session_state.logged_in == True):
     @st.cache_data
     def load_data():
         try:
-            sf = st.secrets["snowflake"]
+            #sf = st.secrets["connect.snowflake"]
 
-            connection_string = (
-              f'snowflake://{sf["user"]}:{sf["password"]}@{sf["account"]}/'
-              f'{sf["database"]}/{sf["schema"]}?warehouse={sf["warehouse"]}&role={sf.get("role", "")}'
-            )
+            #connection_string = (
+            #  f'snowflake://{sf["user"]}:{sf["password"]}@{sf["account"]}/'
+            #  f'{sf["database"]}/{sf["schema"]}?warehouse={sf["warehouse"]}&role={sf.get("role", "")}'
+            #)
 
-            engine = create_engine(connection_string)
-            df = pd.read_sql('SELECT * FROM "RAW."GIT"."DF_GMM"', engine)
+            #engine = create_engine(connection_string)
+            #df = pd.read_sql('SELECT * FROM "RAW."GIT"."DF_GMM"', engine)
 
-        #current_dir = os.path.dirname(__file__)
-        #return pd.read_csv(os.path.join(current_dir, "df_gmm.csv"))
-            return df
+            current_dir = os.path.dirname(__file__)
+            return pd.read_csv(os.path.join(current_dir, "df_gmm.csv"))
+            #return df
         
         except Exception as e:
             st.error(f"Ocurrió un error al cargar los datos: {e}")
