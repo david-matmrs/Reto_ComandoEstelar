@@ -95,7 +95,7 @@ if (st.session_state.logged_in == True):
             #df = pd.read_sql('SELECT * FROM "RAW."GIT"."DF_GMM"', engine)
 
             current_dir = os.path.dirname(__file__)
-            return pd.read_csv(os.path.join(current_dir, "df_gmm.csv"))
+            return pd.read_csv(os.path.join(current_dir, "DF_GMM.csv"))
             #return df
         
         except Exception as e:
