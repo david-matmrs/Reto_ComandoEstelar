@@ -4,6 +4,7 @@ import pandas as pd
 import plotly.express as px
 import os
 import snowflake.connector
+from sqlalchemy import create_engine
 
 # ============================
 # Configuración de la página
@@ -83,15 +84,15 @@ if (st.session_state.logged_in == True):
     @st.cache_data
     def load_data():
         try:
-            conn = snowflake.connector.connect(
-                user=st.secrets["snowflake"]["user"],
-                password=st.secrets["snowflake"]["password"],
-                account=st.secrets["snowflake"]["account"],
-                warehouse=st.secrets["snowflake"]["warehouse"],
-                database=st.secrets["snowflake"]["database"],
-                schema=st.secrets["snowflake"]["schema"],
+            sf = st.secrets["snowflake"]
+
+            connection_string = (
+              f'snowflake://{sf["user"]}:{sf["password"]}@{sf["account"]}/'
+              f'{sf["database"]}/{sf["schema"]}?warehouse={sf["warehouse"]}&role={sf.get("role", "")}'
             )
-            df = pd.read_sql("SELECT * FROM DF_GMM", conn)
+
+            engine = create_engine(connection_string)
+            df = pd.read_sql("SELECT * FROM DF_GMM", engine)
             return df
         
         except Exception as e:
