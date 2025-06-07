@@ -59,7 +59,8 @@ if (st.session_state.logged_in == True):
     # ======================
     # Logo y título
     # ======================
-
+    
+    image_path = os.path.join(current_dir, "images/tca_cover.jpg")
     st.image(image_path, width=1500) 
 
     st.markdown(
@@ -135,7 +136,7 @@ if (st.session_state.logged_in == True):
     cluster2 = df[df['cluster'] == 2]
     cluster3 = df[df['cluster'] == 3]
     
-    # Imágenes de clusters 
+    # Imágenes de clustyyrs 
     image_path0 = os.path.join(current_dir, "images/c0.jpg")
     image_path1 = os.path.join(current_dir, "images/c1.jpg")
     image_path2 = os.path.join(current_dir, "images/c2.jpg")
@@ -143,10 +144,10 @@ if (st.session_state.logged_in == True):
 
     # Info de clusters
     cluster_info = [
-        {"id": 0, "nombre": "Mini Escapada", "descripcion": "Viajeros que se escapan unos días —ya sea en solitario, con su pareja o con un par de amigos. Grupos chiquitos y, usualmente, de estancias cortas.", "imagen": "c0.jpg", "color_bg": "#B8CABA", "color_text": "#0C1013"},
-        {"id": 1, "nombre": "Exploradores de Estancias Largas", "descripcion": "Viajeros que se toman su tiempo para disfrutar. A veces viajan solos, a veces en grupo, pero suelen quedarse más noches.", "imagen": "c1.jpg", "color_bg": "#91A294", "color_text": "#E1E1E1"},
-        {"id": 2, "nombre": "La Dupla Perfecta", "descripcion": "Siempre de dos en dos. Parejas que viajan juntas, quizás recurrentes, con hábitos muy definidos.", "imagen": "c2.jpg", "color_bg": "#FF616E", "color_text": "#E1E1E1"},
-        {"id": 3, "nombre": "Plan Familiar y Amigos", "descripcion": "Grupos grandes, a veces muy grandes. Incluyen niños y buscan experiencias compartidas. Estancias vacacionales.", "imagen": "c3.jpg", "color_bg": "#F34C3F", "color_text": "#0C1013"}
+        {"id": 0, "nombre": "Mini Escapada", "descripcion": "Viajeros que se escapan unos días —ya sea en solitario, con su pareja o con un par de amigos. Grupos chiquitos y, usualmente, de estancias cortas.", "imagen": image_path0, "color_bg": "#B8CABA", "color_text": "#0C1013"},
+        {"id": 1, "nombre": "Exploradores de Estancias Largas", "descripcion": "Viajeros que se toman su tiempo para disfrutar. A veces viajan solos, a veces en grupo, pero suelen quedarse más noches.", "imagen": image_path1, "color_bg": "#91A294", "color_text": "#E1E1E1"},
+        {"id": 2, "nombre": "La Dupla Perfecta", "descripcion": "Siempre de dos en dos. Parejas que viajan juntas, quizás recurrentes, con hábitos muy definidos.", "imagen": image_path2, "color_bg": "#FF616E", "color_text": "#E1E1E1"},
+        {"id": 3, "nombre": "Plan Familiar y Amigos", "descripcion": "Grupos grandes, a veces muy grandes. Incluyen niños y buscan experiencias compartidas. Estancias vacacionales.", "imagen": image_path3, "color_bg": "#F34C3F", "color_text": "#0C1013"}
     ]
 
     ##################################
