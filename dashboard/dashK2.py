@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 import os
+import snowflake.connector
 
 # ============================
 # Configuración de la página
@@ -81,8 +82,11 @@ if (st.session_state.logged_in == True):
     # Carga de datos
     @st.cache_data
     def load_data():
-        current_dir = os.path.dirname(__file__)
-        return pd.read_csv(os.path.join(current_dir, "df_gmm.csv"))
+        conn = snowflake.connector.connect(**st.secrets["snowflake"])
+
+        # Leer los datos de la tabla
+        df = pd.read_sql("SELECT * FROM git.DF_GMM", conn)
+        return df
 
     df = load_data()
 
