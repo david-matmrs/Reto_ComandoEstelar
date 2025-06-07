@@ -37,7 +37,7 @@ if not st.session_state.logged_in:
         # Configuración del cover logo
         current_dir = os.path.dirname(__file__)
         image_path = os.path.join(current_dir, "tca_cover.jpg")
-        st.image(image_path, width=200)
+        st.image(image_path, use_container_width=True,  width=200)
         st.markdown("<h1 style='text-align: center;'>¡Bienvenido!</h1>", unsafe_allow_html=True)
         st.markdown("### Iniciar sesión")
         username = st.text_input("Usuario", placeholder="Ingresa tu usuario")
