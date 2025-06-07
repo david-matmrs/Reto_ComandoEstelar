@@ -36,7 +36,7 @@ if not st.session_state.logged_in:
     with placeholder.form("login"):
         # Configuración del cover logo
         current_dir = os.path.dirname(__file__)
-        image_path = os.path.join(current_dir, "tca_cover.jpg")
+        image_path = os.path.join(current_dir, "images/tca_cover.jpg")
         st.image(image_path, use_container_width=True,  width=200)
         st.markdown("<h1 style='text-align: center;'>¡Bienvenido!</h1>", unsafe_allow_html=True)
         st.markdown("### Iniciar sesión")
@@ -135,6 +135,12 @@ if (st.session_state.logged_in == True):
     cluster2 = df[df['cluster'] == 2]
     cluster3 = df[df['cluster'] == 3]
     
+    # Imágenes de clusters 
+    image_path0 = os.path.join(current_dir, "images/c0.jpg")
+    image_path1 = os.path.join(current_dir, "images/c1.jpg")
+    image_path2 = os.path.join(current_dir, "images/c2.jpg")
+    image_path3 = os.path.join(current_dir, "images/c3.jpg")
+
     # Info de clusters
     cluster_info = [
         {"id": 0, "nombre": "Mini Escapada", "descripcion": "Viajeros que se escapan unos días —ya sea en solitario, con su pareja o con un par de amigos. Grupos chiquitos y, usualmente, de estancias cortas.", "imagen": "c0.jpg", "color_bg": "#B8CABA", "color_text": "#0C1013"},
