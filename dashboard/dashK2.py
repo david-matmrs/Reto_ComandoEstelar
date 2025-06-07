@@ -84,15 +84,9 @@ if (st.session_state.logged_in == True):
     @st.cache_data
     def load_data():
         try:
-            sf = st.secrets["snowflake"]
+            conn = st.connection("snowflake")
+            df = conn.query("SELECT * FROM RAW.GIT.DF_GMM;", ttl="10m")
 
-            connection_string = (
-              f'snowflake://{sf["USER"]}:{sf["PASSWORD"]}@{sf["ACCOUNT"]}/'
-              f'{sf["DATABASE"]}/{sf["SCHEMA"]}?warehouse={sf["WAREHOUSE"]}&role={sf.get("ROLE", "")}'
-            )
-
-            engine = create_engine(connection_string)
-            df = pd.read_sql("SELECT * FROM RAW.GIT.DF_GMM", engine)
             return df
         
         except Exception as e:
