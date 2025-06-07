@@ -111,7 +111,7 @@ if (st.session_state.logged_in == True):
             )
 
             engine = create_engine(connection_string)
-            df = pd.read_sql("SELECT * FROM "RAW"."GIT"."DF_GMM", engine)
+            df = pd.read_sql("SELECT * FROM RAW.GIT.DF_GMM", engine)
         
         except Exception as e:
             st.error(f"Ocurrió un error al cargar los datos: {e}")
