@@ -60,6 +60,7 @@ if (st.session_state.logged_in == True):
     # Logo y título
     # ======================
     
+    current_dir = os.path.dirname(__file__)
     image_path = os.path.join(current_dir, "images/tca_cover.jpg")
     st.image(image_path, width=1500) 
 
