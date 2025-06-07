@@ -34,7 +34,7 @@ if not st.session_state.logged_in:
 
     with placeholder.form("login"):
         # Configuración del cover logo
-        st.image("tca_cover.jpeg", use_container_width=True, width=200)
+        st.image("tca_cover.jpg", width=200)
         st.markdown("<h1 style='text-align: center;'>¡Bienvenido!</h1>", unsafe_allow_html=True)
         st.markdown("### Iniciar sesión")
         username = st.text_input("Usuario", placeholder="Ingresa tu usuario")
