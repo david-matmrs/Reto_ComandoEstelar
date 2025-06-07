@@ -92,7 +92,7 @@ if (st.session_state.logged_in == True):
             )
 
             engine = create_engine(connection_string)
-            df = pd.read_sql("SELECT * FROM RAW.GIT.DF_GMM", engine)
+            df = pd.read_sql("SELECT * FROM df_gmm", engine)
             return df
         
         except Exception as e:
