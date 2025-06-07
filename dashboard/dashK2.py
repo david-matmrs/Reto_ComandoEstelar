@@ -81,8 +81,14 @@ if (st.session_state.logged_in == True):
     # Carga de datos
     @st.cache_data
     def load_data():
-        current_dir = os.path.dirname(__file__)
-        return pd.read_csv(os.path.join(current_dir, "df_gmm.csv"))
+        #current_dir = os.path.dirname(__file__)
+        #return pd.read_csv(os.path.join(current_dir, "df_gmm.csv"))
+        try: 
+            query = 'SELECT * "RAW"."GIT"."DF_GMM"'
+            df = session.sql(query).topandas()
+            return df
+        except Exception as e: 
+            st.error(f"Error: {e}")
 
     df = load_data()
 
